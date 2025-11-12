@@ -25,4 +25,6 @@ header {
     margin: 0 15px;
     padding: 20px;
     width: 150px;
+    cursor: default; 
 }
+

@@ -38,6 +38,13 @@ async function fetchData() {
     } catch (error) {
         console.error("Erreur récupération données :", error);
     }
+    document.addEventListener("DOMContentLoaded", () => {
+    const elems = [document.getElementById("temperature"), document.getElementById("humidity")];
+    elems.forEach(el => {
+        el.addEventListener("mousedown", e => e.preventDefault()); 
+    });
+});
+
 }
 
 setInterval(fetchData, 2000);
