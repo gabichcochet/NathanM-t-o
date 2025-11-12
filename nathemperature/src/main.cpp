@@ -1,14 +1,33 @@
 #include <Arduino.h>
 #include "DHTesp.h"
 #include <WiFiManager.h>
+#include <PubSubClient.h>
  
 WiFiManager wm;
 DHTesp dht;
 
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+void reconnect() {
+  while (!client.connected()) {
+    Serial.print("Attempting MQTT connection...");
+    if (client.connect("Nathan")) {
+      Serial.println("connected");
+    } else {
+      Serial.print("failed, rc=");
+      Serial.print(client.state());
+      Serial.println(" try again in 5 seconds");
+
+      delay(5000);
+    }
+  }
+}
+
 void setup() {
 
   WiFi.mode(WIFI_STA);
-  
+
   Serial.begin(115200);
 
   dht.setup(25, DHTesp::DHT11);
@@ -18,20 +37,23 @@ void setup() {
 
   Serial.println("Tentative de connexion au réseau Wi-Fi...");
 
-    // Connexion automatique au réseau Wi-Fi connu
     if (!wm.autoConnect()) {
         Serial.println("Erreur de connexion au réseau Wi-Fi.");
-        // Vous pouvez ajouter ici une logique pour gérer l'erreur de connexion
     } else {
-        // Connexion réussie
         Serial.println("Connexion au réseau Wi-Fi réussie !");
         Serial.print("Adresse IP : ");
         Serial.println(WiFi.localIP());
-        // Vous pouvez ajouter ici une logique pour exécuter des actions supplémentaires après la connexion réussie
     }
+
+    client.setServer("broker.emqx.io", 1883);
+    client.connect("Nathan");
 }
 
 void loop() {
+  if (!client.connected()) {
+    reconnect();
+  }
+  
   float humidity = dht.getHumidity();
   float temperature = dht.getTemperature();
 
@@ -40,9 +62,12 @@ void loop() {
   } else {
     Serial.print("Temperature: ");
     Serial.print(temperature);
+    client.publish("Nathan/temperature", String(temperature).c_str());
+
     Serial.print(" °C, Humidity: ");
     Serial.print(humidity);
+    client.publish("Nathan/humidity", String(humidity).c_str());
     Serial.println(" %");
   }
-  delay(2000);
+  delay(20000);
 }
