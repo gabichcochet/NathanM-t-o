@@ -53,7 +53,8 @@ void loop() {
   if (!client.connected()) {
     reconnect();
   }
-  
+  client.loop();
+
   float humidity = dht.getHumidity();
   float temperature = dht.getTemperature();
 
@@ -62,12 +63,12 @@ void loop() {
   } else {
     Serial.print("Temperature: ");
     Serial.print(temperature);
-    client.publish("Nathan/temperature", String(temperature).c_str());
-
     Serial.print(" °C, Humidity: ");
     Serial.print(humidity);
-    client.publish("Nathan/humidity", String(humidity).c_str());
     Serial.println(" %");
+
+    client.publish("Nathan/temperature", String(temperature).c_str());
+    client.publish("Nathan/humidity", String(humidity).c_str());
   }
-  delay(20000);
+  delay(60000);
 }
