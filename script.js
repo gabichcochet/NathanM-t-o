@@ -14,7 +14,8 @@ const chart = new Chart(ctx, {
                 borderWidth: 2,
                 tension: 0.4,
                 fill: false,
-                yAxisID: 'yTemp'
+                yAxisID: 'yTemp',
+                hidden: false
             },
             {
                 label: 'Humidité (%)',
@@ -23,7 +24,8 @@ const chart = new Chart(ctx, {
                 borderWidth: 2,
                 tension: 0.4,
                 fill: false,
-                yAxisID: 'yHum'
+                yAxisID: 'yHum',
+                hidden: false
             }
         ]
     },
@@ -39,17 +41,37 @@ const chart = new Chart(ctx, {
             yTemp: {
                 type: 'linear',
                 position: 'left',
-                title: { display: true, text: 'Température (°C)' }
+                title: { display: true, text: 'Température (°C)' },
+                display: true
             },
             yHum: {
                 type: 'linear',
                 position: 'right',
                 title: { display: true, text: 'Humidité (%)' },
-                grid: { drawOnChartArea: false }
+                grid: { drawOnChartArea: false },
+                display: true
             },
             x: {
                 title: { display: true, text: 'Derniers points' },
                 ticks: { maxRotation: 45, minRotation: 45 }
+            }
+        },
+        plugins: {
+            legend: {
+                onClick: function (e, legendItem, legend) {
+                    const index = legendItem.datasetIndex;
+                    const ci = legend.chart;
+                    const meta = ci.getDatasetMeta(index);
+
+                    // Toggle dataset visibility
+                    meta.hidden = !meta.hidden;
+
+                    // Show or hide the corresponding y-axis
+                    const yAxisID = ci.data.datasets[index].yAxisID;
+                    ci.options.scales[yAxisID].display = !meta.hidden;
+
+                    ci.update();
+                }
             }
         }
     }
