@@ -17,7 +17,7 @@
 
       <form id="loginForm" novalidate class="space-y-4">
         <div>
-          <label for="email" class="block text-sm font-medium text-slate-700">Adresse e‑mail</label>
+          <label for="email" class="block text-sm font-medium text-slate-700">Adresse e-mail</label>
           <input id="email" name="email" type="email" required aria-describedby="emailHelp"
             class="mt-1 block w-full rounded-lg border border-slate-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-sky-300" />
           <p id="emailHelp" class="mt-1 text-xs text-red-600 hidden"></p>
@@ -48,16 +48,13 @@
           <button type="submit" class="w-full py-2 rounded-lg bg-sky-600 text-white font-medium hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-300">Se connecter</button>
         </div>
 
-        <div class="text-center text-sm text-slate-500">ou</div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <button type="button" class="py-2 rounded-lg border border-slate-200">Se connecter avec Google</button>
-          <button type="button" class="py-2 rounded-lg border border-slate-200">Se connecter avec GitHub</button>
+        <div class="text-center text-sm text-slate-500">
+          En vous connectant, vous acceptez nos <a href="#" class="text-sky-600 hover:underline">Conditions d'utilisation</a> et notre <a href="#" class="text-sky-600 hover:underline">Politique de confidentialité</a>.
         </div>
       </form>
 
       <footer class="mt-6 text-center text-sm text-slate-600">
-        Pas encore de compte ? <a href="#" class="text-sky-600 hover:underline">S'inscrire</a>
+        Pas encore de compte ? <a href="#" class="text-sky-600 hover:underline">inscrire toi </a>
       </footer>
     </section>
 
@@ -96,13 +93,12 @@
       // email simple validation
       const emailVal = email.value.trim();
       if (!emailVal) {
-        showError(emailHelp, 'L\'adresse e‑mail est requise.');
+        showError(emailHelp, 'L\'adresse e-mail est requise.');
         ok = false;
       } else {
-        // simple regex — suffisante côté client
         const re = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
         if (!re.test(emailVal)) {
-          showError(emailHelp, 'Adresse e‑mail invalide.');
+          showError(emailHelp, 'Adresse e-mail invalide.');
           ok = false;
         } else hideError(emailHelp);
       }
