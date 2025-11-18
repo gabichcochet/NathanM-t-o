@@ -28,3 +28,9 @@ header {
     cursor: default; 
 }
 
+canvas {
+    max-width: 90%;
+    height: 300px;   
+    margin: 0 auto;
+    display: block;
+}
