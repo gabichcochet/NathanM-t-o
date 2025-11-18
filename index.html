@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Station</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -21,10 +21,16 @@
             <p>Humidité</p>
         </div>
     </section>
-
-    <section>
-        <canvas id="chartTemp" width="400" height="150"></canvas>
-    </section>
+    <div style="text-align: center;">
+        <section id="chartsSection">
+            <div class="chart-container">
+                <canvas id="chartTemp"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="chartHum"></canvas>
+            </div>
+        </section>
+    </div>
 
     <script src="script.js"></script>
 </body>
