@@ -1,7 +1,6 @@
 const tempElem = document.getElementById('temperature');
 const humElem = document.getElementById('humidity');
 
-// Defer creating charts until we have data and the charts container is visible
 let tempChart = null;
 let humChart = null;
 
@@ -39,7 +38,7 @@ function createCharts() {
                     title: { display: true, text: 'Température (°C)' }
                 },
                 x: {
-                    title: { display: true, text: 'Heure' },
+                    title: { display: true},
                     ticks: { maxRotation: 45, minRotation: 45 }
                 }
             }
@@ -68,7 +67,9 @@ function createCharts() {
                     title: { display: true, text: 'Humidité (%)' }
                 },
                 x: {
-                    title: { display: true, text: 'Heure' },
+                    title: { display: true,
+                        padding: { top: 10}
+                     },
                     ticks: { maxRotation: 45, minRotation: 45 }
                 }
             }
@@ -99,7 +100,6 @@ async function fetchCSVAndUpdate() {
             const temperature = parseFloat(parts[1]);
             const humidity = parseFloat(parts[2]);
 
-            // Temperature
             if (!isNaN(temperature) && timestamp !== lastTempTimestamp) {
                 tempLabels.push(timestamp);
                 tempData.push(temperature);
@@ -110,7 +110,6 @@ async function fetchCSVAndUpdate() {
                 }
             }
 
-            // Humidity
             if (!isNaN(humidity) && timestamp !== lastHumTimestamp) {
                 humLabels.push(timestamp);
                 humData.push(humidity);
@@ -122,11 +121,9 @@ async function fetchCSVAndUpdate() {
             }
         }
 
-        // Update latest values
         if (tempData.length > 0) tempElem.textContent = `${tempData[tempData.length - 1]} °C`;
         if (humData.length > 0) humElem.textContent = `${humData[humData.length - 1]} %`;
 
-        // If we have buffered data and charts not yet created, create them now
         if ((!tempChart || !humChart) && (bufferedTempData.length > 0 || bufferedHumData.length > 0)) {
             createCharts();
         }
@@ -139,6 +136,5 @@ async function fetchCSVAndUpdate() {
     }
 }
 
-// Update every second
 setInterval(fetchCSVAndUpdate, 1000);
 fetchCSVAndUpdate();
