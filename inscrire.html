@@ -37,6 +37,12 @@
         </div>
 
         <div>
+          <label for="pairCode" class="block text-sm font-medium text-slate-700">Code d’appairage (optionnel)</label>
+          <input id="pairCode" name="pairCode" type="text"
+            class="mt-1 block w-full rounded-lg border border-slate-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-sky-300" />
+        </div>
+
+        <div>
           <button type="submit" class="w-full py-2 rounded-lg bg-sky-600 text-white font-medium hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-300">S'inscrire</button>
         </div>
 
@@ -52,61 +58,43 @@
     const name = document.getElementById('name');
     const email = document.getElementById('email');
     const pwd = document.getElementById('password');
-    const nameHelp = document.getElementById('nameHelp');
-    const emailHelp = document.getElementById('emailHelp');
-    const passwordHelp = document.getElementById('passwordHelp');
+    const pairCode = document.getElementById('pairCode');
 
-    function showError(el, msg) {
-      el.textContent = msg;
-      el.classList.remove('hidden');
-    }
-    function hideError(el) {
-      el.textContent = '';
-      el.classList.add('hidden');
-    }
-
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      let ok = true;
 
-      if (!name.value.trim()) {
-        showError(nameHelp, 'Le nom est requis.');
-        ok = false;
-      } else hideError(nameHelp);
+      const newUser = {
+        name: name.value.trim(),
+        email: email.value.trim(),
+        password: pwd.value.trim(),
+        devices: []
+      };
 
-      const emailVal = email.value.trim();
-      if (!emailVal) {
-        showError(emailHelp, 'L\'adresse e-mail est requise.');
-        ok = false;
-      } else {
-        const re = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-        if (!re.test(emailVal)) {
-          showError(emailHelp, 'Adresse e-mail invalide.');
-          ok = false;
-        } else hideError(emailHelp);
+      if (pairCode.value.trim()) {
+        newUser.devices.push(pairCode.value.trim());
       }
 
-      const pwdVal = pwd.value;
-      if (!pwdVal) {
-        showError(passwordHelp, 'Le mot de passe est requis.');
-        ok = false;
-      } else if (pwdVal.length < 6) {
-        showError(passwordHelp, 'Le mot de passe doit contenir au moins 6 caractères.');
-        ok = false;
-      } else hideError(passwordHelp);
+      try {
+        const response = await fetch("/api/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newUser)
+        });
 
-      if (!ok) return;
+        const data = await response.json();
 
-      let users = JSON.parse(localStorage.getItem("users")) || [];
-      users.push({
-        name: name.value.trim(),
-        email: emailVal,
-        password: pwdVal
-      });
-      localStorage.setItem("users", JSON.stringify(users));
+        if (!response.ok || data.error) {
+          alert("Erreur lors de l'inscription : " + (data.error || "inconnue"));
+          return;
+        }
 
-      alert("Utilisateur enregistré !");
-      window.location.href = "station.html";
+        localStorage.setItem("currentUser", JSON.stringify(data));
+        alert("Utilisateur enregistré !");
+        window.location.href = "station.html";
+      } catch (err) {
+        console.error("Erreur API:", err);
+        alert("Impossible de contacter le serveur.");
+      }
     });
   </script>
 </body>

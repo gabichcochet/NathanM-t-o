@@ -1,17 +1,45 @@
 const tempElem = document.getElementById('temperature');
 const humElem = document.getElementById('humidity');
 const userEmailElem = document.getElementById("userEmail");
-const currentUser = localStorage.getItem("currentUser");
+const deviceSelectElem = document.getElementById("deviceSelect"); // dropdown des appareils
+
+// Récupération de l'utilisateur connecté
 const currentUserRaw = localStorage.getItem("currentUser");
 
-if (currentUser) {
+let selectedDevice = null;
+
+if (currentUserRaw) {
   const currentUser = JSON.parse(currentUserRaw);
   userEmailElem.textContent = `Connecté en tant que : ${currentUser.name}`;
+  userEmailElem.style.color = "white";
+
+  // Remplir le dropdown avec les appareils de l'utilisateur
+  if (currentUser.devices && currentUser.devices.length > 0) {
+    currentUser.devices.forEach(code => {
+      const opt = document.createElement("option");
+      opt.value = code;
+      opt.textContent = `Appareil ${code}`;
+      deviceSelectElem.appendChild(opt);
+    });
+
+    // Sélection par défaut : le premier appareil
+    selectedDevice = currentUser.selectedDevice || currentUser.devices[0];
+    deviceSelectElem.value = selectedDevice;
+
+    // Changement de sélection
+    deviceSelectElem.addEventListener("change", (e) => {
+      selectedDevice = e.target.value;
+      resetCharts();
+    });
+  } else {
+    alert("Aucun appareil appairé. Ajoutez un code d’appairage.");
+    window.location.href = "connexion.html";
+  }
 } else {
   window.location.href = "connexion.html";
 }
 
-
+// Déconnexion
 function logout() {
   localStorage.removeItem("currentUser");
   window.location.href = "connexion.html";
@@ -26,6 +54,18 @@ const bufferedHumLabels = [];
 const bufferedHumData = [];
 
 let lastLineCount = 0; 
+
+function resetCharts() {
+  bufferedTempLabels.length = 0;
+  bufferedTempData.length = 0;
+  bufferedHumLabels.length = 0;
+  bufferedHumData.length = 0;
+  lastLineCount = 0;
+  if (tempChart) tempChart.destroy();
+  if (humChart) humChart.destroy();
+  tempChart = null;
+  humChart = null;
+}
 
 function createCharts() {
     const chartsSection = document.getElementById('chartsSection');
@@ -47,20 +87,7 @@ function createCharts() {
                 fill: false,
             }]
         },
-        options: {
-            responsive: true,
-            animation: false,
-            scales: {
-                y: {
-                    beginAtZero: false,
-                    title: { display: true, text: 'Température (°C)' }
-                },
-                x: {
-                    title: { display: true },
-                    ticks: { maxRotation: 45, minRotation: 45 }
-                }
-            }
-        }
+        options: { responsive: true, animation: false }
     });
 
     humChart = new Chart(ctxHum, {
@@ -76,20 +103,7 @@ function createCharts() {
                 fill: false,
             }]
         },
-        options: {
-            responsive: true,
-            animation: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: { display: true, text: 'Humidité (%)' }
-                },
-                x: {
-                    title: { display: true, padding: { top: 10 } },
-                    ticks: { maxRotation: 45, minRotation: 45 }
-                }
-            }
-        }
+        options: { responsive: true, animation: false }
     });
 }
 
@@ -111,24 +125,22 @@ async function fetchCSVAndUpdate() {
 
             const timestamp = parts[0];
             const value = parseFloat(parts[1]);
-            const type = parts[2]; 
+            const type = parts[2];
+            const deviceCode = parts[3]; // code d’appairage
+
+            // Filtrer par appareil sélectionné
+            if (deviceCode !== selectedDevice) continue;
 
             if (type === "temperature" && !isNaN(value)) {
                 tempLabels.push(timestamp);
                 tempData.push(value);
-                if (tempLabels.length > 20) {
-                    tempLabels.shift();
-                    tempData.shift();
-                }
+                if (tempLabels.length > 20) { tempLabels.shift(); tempData.shift(); }
             }
 
             if (type === "humidity" && !isNaN(value)) {
                 humLabels.push(timestamp);
                 humData.push(value);
-                if (humLabels.length > 20) {
-                    humLabels.shift();
-                    humData.shift();
-                }
+                if (humLabels.length > 20) { humLabels.shift(); humData.shift(); }
             }
         }
 

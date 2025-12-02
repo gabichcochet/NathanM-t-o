@@ -28,15 +28,14 @@ header {
     cursor: default; 
 }
 
-/* Charts layout: use inline-block containers (no flex) so canvases sit side-by-side */
 #chartsSection {
-    display: none; /* shown by JS when data is available */
+    display: none;
     margin-top: 20px;
 }
 
 .chart-container {
     display: inline-block;
-    width: 420px; /* fixed width to avoid overlap */
+    width: 420px; 
     margin: 0 20px;
     vertical-align: top;
 }

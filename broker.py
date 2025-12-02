@@ -1,3 +1,4 @@
+import os
 import paho.mqtt.client as mqtt
 import csv
 from datetime import datetime
@@ -10,7 +11,7 @@ CSV_FILE = "sensor_data.csv"
 with open(CSV_FILE, "a", newline="") as f:
     if f.tell() == 0:
         writer = csv.writer(f)
-        writer.writerow(["timestamp", "value", "type", "token"])
+        writer.writerow(["timestamp", "value", "type", "device_code"])
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
@@ -25,10 +26,10 @@ def on_message(client, userdata, msg):
 
     parts = msg.topic.split('/')
     category = None
-    token = None
+    device_code = None
     if len(parts) >= 3:
-        category = parts[1]   # "temperature" ou "humidity"
-        token = parts[2]
+        category = parts[1]  
+        device_code = parts[2] 
 
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -40,8 +41,8 @@ def on_message(client, userdata, msg):
 
         with open(CSV_FILE, "a", newline="") as f:
             writer = csv.writer(f)
-            writer.writerow([timestamp, value, category, token])
-            print(f"💾 Saved {category} row: {value} (token: {token})")
+            writer.writerow([timestamp, value, category, device_code])
+            print(f"💾 Saved {category} row: {value} (device: {device_code})")
 
 client = mqtt.Client()
 client.on_connect = on_connect
