@@ -1,5 +1,21 @@
 const tempElem = document.getElementById('temperature');
 const humElem = document.getElementById('humidity');
+const userEmailElem = document.getElementById("userEmail");
+const currentUser = localStorage.getItem("currentUser");
+const currentUserRaw = localStorage.getItem("currentUser");
+
+if (currentUser) {
+  const currentUser = JSON.parse(currentUserRaw);
+  userEmailElem.textContent = `Connecté en tant que : ${currentUser.name}`;
+} else {
+  window.location.href = "connexion.html";
+}
+
+
+function logout() {
+  localStorage.removeItem("currentUser");
+  window.location.href = "connexion.html";
+}
 
 let tempChart = null;
 let humChart = null;
@@ -8,6 +24,8 @@ const bufferedTempLabels = [];
 const bufferedTempData = [];
 const bufferedHumLabels = [];
 const bufferedHumData = [];
+
+let lastLineCount = 0; 
 
 function createCharts() {
     const chartsSection = document.getElementById('chartsSection');
@@ -38,7 +56,7 @@ function createCharts() {
                     title: { display: true, text: 'Température (°C)' }
                 },
                 x: {
-                    title: { display: true},
+                    title: { display: true },
                     ticks: { maxRotation: 45, minRotation: 45 }
                 }
             }
@@ -67,9 +85,7 @@ function createCharts() {
                     title: { display: true, text: 'Humidité (%)' }
                 },
                 x: {
-                    title: { display: true,
-                        padding: { top: 10}
-                     },
+                    title: { display: true, padding: { top: 10 } },
                     ticks: { maxRotation: 45, minRotation: 45 }
                 }
             }
@@ -77,12 +93,9 @@ function createCharts() {
     });
 }
 
-let lastTempTimestamp = null;
-let lastHumTimestamp = null;
-
 async function fetchCSVAndUpdate() {
     try {
-        const response = await fetch("sensor_data.csv");
+        const response = await fetch("sensor_data.csv", { cache: "no-store" });
         const csvText = await response.text();
         const lines = csvText.trim().split("\n");
 
@@ -92,34 +105,34 @@ async function fetchCSVAndUpdate() {
         const humLabels = humChart ? humChart.data.labels : bufferedHumLabels;
         const humData = humChart ? humChart.data.datasets[0].data : bufferedHumData;
 
-        for (let i = 1; i < lines.length; i++) { 
+        for (let i = lastLineCount + 1; i < lines.length; i++) {
             const parts = lines[i].split(",");
-            if (parts.length < 3) continue;
+            if (parts.length < 4) continue;
 
             const timestamp = parts[0];
-            const temperature = parseFloat(parts[1]);
-            const humidity = parseFloat(parts[2]);
+            const value = parseFloat(parts[1]);
+            const type = parts[2]; 
 
-            if (!isNaN(temperature) && timestamp !== lastTempTimestamp) {
+            if (type === "temperature" && !isNaN(value)) {
                 tempLabels.push(timestamp);
-                tempData.push(temperature);
-                lastTempTimestamp = timestamp;
+                tempData.push(value);
                 if (tempLabels.length > 20) {
                     tempLabels.shift();
                     tempData.shift();
                 }
             }
 
-            if (!isNaN(humidity) && timestamp !== lastHumTimestamp) {
+            if (type === "humidity" && !isNaN(value)) {
                 humLabels.push(timestamp);
-                humData.push(humidity);
-                lastHumTimestamp = timestamp;
+                humData.push(value);
                 if (humLabels.length > 20) {
                     humLabels.shift();
                     humData.shift();
                 }
             }
         }
+
+        lastLineCount = lines.length - 1;
 
         if (tempData.length > 0) tempElem.textContent = `${tempData[tempData.length - 1]} °C`;
         if (humData.length > 0) humElem.textContent = `${humData[humData.length - 1]} %`;

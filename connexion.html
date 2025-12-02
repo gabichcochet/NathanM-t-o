@@ -45,39 +45,12 @@
     const form = document.getElementById('loginForm');
     const email = document.getElementById('email');
     const pwd = document.getElementById('password');
-    const emailHelp = document.getElementById('emailHelp');
-    const passwordHelp = document.getElementById('passwordHelp');
-
-    function showError(el, msg) {
-      el.textContent = msg;
-      el.classList.remove('hidden');
-    }
-    function hideError(el) {
-      el.textContent = '';
-      el.classList.add('hidden');
-    }
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      let ok = true;
 
       const emailVal = email.value.trim();
       const pwdVal = pwd.value.trim();
-
-      if (!emailVal) {
-        showError(emailHelp, "L'adresse e-mail est requise.");
-        ok = false;
-      } else hideError(emailHelp);
-
-      if (!pwdVal) {
-        showError(passwordHelp, "Le mot de passe est requis.");
-        ok = false;
-      } else if (pwdVal.length < 6) {
-        showError(passwordHelp, "Le mot de passe doit contenir au moins 6 caractères.");
-        ok = false;
-      } else hideError(passwordHelp);
-
-      if (!ok) return;
 
       const users = JSON.parse(localStorage.getItem("users")) || [];
       const foundUser = users.find(u => u.email === emailVal && u.password === pwdVal);
@@ -87,7 +60,7 @@
         alert("Connexion réussie !");
         window.location.href = "station.html";
       } else {
-        showError(passwordHelp, "Email ou mot de passe incorrect.");
+        alert("Email ou mot de passe incorrect.");
       }
     });
   </script>

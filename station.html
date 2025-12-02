@@ -1,37 +1,42 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8" />
-    <title>Station</title>
-    <link rel="stylesheet" href="style.css" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <meta charset="UTF-8">
+  <title>Station Météo</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
-    <header>
-        <h1>🌡️ Température</h1>
-    </header>
-
-    <section class="cards">
-        <div class="card">
-            <h2 id="temperature">-- °C</h2>
-            <p>Température</p>
-        </div>
-        <div class="card">
-            <h2 id="humidity">-- %</h2>
-            <p>Humidité</p>
-        </div>
-    </section>
-    <div style="text-align: center;">
-        <section id="chartsSection">
-            <div class="chart-container">
-                <canvas id="chartTemp"></canvas>
-            </div>
-            <div class="chart-container">
-                <canvas id="chartHum"></canvas>
-            </div>
-        </section>
+  <header style="display: flex; justify-content: space-between; align-items: center; padding: 1rem;">
+    <h1>🌡️ Station météo</h1>
+    <div>
+      <p id="userEmail" style="margin: 0; font-size: 0.9rem; color: white;"></p>
+      <button onclick="logout()" style="margin-top: 0.5rem;">Déconnexion</button>
     </div>
+  </header>
 
-    <script src="script.js"></script>
+  <section class="cards">
+    <div class="card">
+      <h2 id="temperature">-- °C</h2>
+      <p>Température</p>
+    </div>
+    <div class="card">
+      <h2 id="humidity">-- %</h2>
+      <p>Humidité</p>
+    </div>
+  </section>
+
+  <p id="lastUpdate" style="text-align:center; font-size:0.9rem; color:gray;"></p>
+
+  <section id="chartsSection" style="display:none;">
+    <div class="chart-container">
+      <canvas id="chartTemp"></canvas>
+    </div>
+    <div class="chart-container">
+      <canvas id="chartHum"></canvas>
+    </div>
+  </section>
+
+  <script src="script.js"></script>
 </body>
 </html>
