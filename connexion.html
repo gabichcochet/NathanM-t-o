@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Connexion</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <meta name="description" content="Page de connexion responsive et accessible" />
 </head>
 <body class="min-h-screen bg-gradient-to-br from-slate-100 to-sky-100 flex items-center justify-center p-6">
   <main class="w-full max-w-md">
@@ -18,64 +17,36 @@
       <form id="loginForm" novalidate class="space-y-4">
         <div>
           <label for="email" class="block text-sm font-medium text-slate-700">Adresse e-mail</label>
-          <input id="email" name="email" type="email" required aria-describedby="emailHelp"
+          <input id="email" name="email" type="email" required
             class="mt-1 block w-full rounded-lg border border-slate-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-sky-300" />
           <p id="emailHelp" class="mt-1 text-xs text-red-600 hidden"></p>
         </div>
 
         <div>
           <label for="password" class="block text-sm font-medium text-slate-700">Mot de passe</label>
-          <div class="relative mt-1">
-            <input id="password" name="password" type="password" required minlength="6"
-              class="block w-full rounded-lg border border-slate-200 px-4 py-2 pr-12 focus:outline-none focus:ring-2 focus:ring-sky-300" />
-            <button type="button" id="togglePwd" aria-label="Afficher le mot de passe"
-              class="absolute right-2 top-1/2 -translate-y-1/2 text-sm px-2 py-1 rounded-md focus:outline-none">
-              Voir
-            </button>
-          </div>
+          <input id="password" name="password" type="password" required minlength="6"
+            class="mt-1 block w-full rounded-lg border border-slate-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-sky-300" />
           <p id="passwordHelp" class="mt-1 text-xs text-red-600 hidden"></p>
-        </div>
-
-        <div class="flex items-center justify-between">
-          <label class="inline-flex items-center text-sm text-slate-700">
-            <input type="checkbox" id="remember" name="remember" class="mr-2 h-4 w-4 rounded border-slate-300" />
-            Se souvenir de moi
-          </label>
-          <a href="#" class="text-sm text-sky-600 hover:underline">Mot de passe oublié ?</a>
         </div>
 
         <div>
           <button type="submit" class="w-full py-2 rounded-lg bg-sky-600 text-white font-medium hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-300">Se connecter</button>
         </div>
-
-        <div class="text-center text-sm text-slate-500">
-          En vous connectant, vous acceptez nos <a href="#" class="text-sky-600 hover:underline">Conditions d'utilisation</a> et notre <a href="#" class="text-sky-600 hover:underline">Politique de confidentialité</a>.
-        </div>
       </form>
 
       <footer class="mt-6 text-center text-sm text-slate-600">
-        Pas encore de compte ? <a href="#" class="text-sky-600 hover:underline">inscrire toi </a>
+        Pas encore de compte ? 
+        <a href="inscrire.html" class="text-sky-600 hover:underline">Inscrivez-vous</a>
       </footer>
     </section>
-
-    <p class="mt-4 text-xs text-center text-slate-500">HTML / CSS (Tailwind) + validation JS. Accessible et responsive.</p>
   </main>
 
   <script>
-    // Validation & interactivity (client-side)
     const form = document.getElementById('loginForm');
     const email = document.getElementById('email');
     const pwd = document.getElementById('password');
     const emailHelp = document.getElementById('emailHelp');
     const passwordHelp = document.getElementById('passwordHelp');
-    const toggle = document.getElementById('togglePwd');
-
-    toggle.addEventListener('click', () => {
-      const type = pwd.type === 'password' ? 'text' : 'password';
-      pwd.type = type;
-      toggle.textContent = type === 'password' ? 'Voir' : 'Cacher';
-      toggle.setAttribute('aria-pressed', type === 'text');
-    });
 
     function showError(el, msg) {
       el.textContent = msg;
@@ -90,42 +61,34 @@
       e.preventDefault();
       let ok = true;
 
-      // email simple validation
       const emailVal = email.value.trim();
-      if (!emailVal) {
-        showError(emailHelp, 'L\'adresse e-mail est requise.');
-        ok = false;
-      } else {
-        const re = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-        if (!re.test(emailVal)) {
-          showError(emailHelp, 'Adresse e-mail invalide.');
-          ok = false;
-        } else hideError(emailHelp);
-      }
+      const pwdVal = pwd.value.trim();
 
-      // password
-      const pwdVal = pwd.value;
+      if (!emailVal) {
+        showError(emailHelp, "L'adresse e-mail est requise.");
+        ok = false;
+      } else hideError(emailHelp);
+
       if (!pwdVal) {
-        showError(passwordHelp, 'Le mot de passe est requis.');
+        showError(passwordHelp, "Le mot de passe est requis.");
         ok = false;
       } else if (pwdVal.length < 6) {
-        showError(passwordHelp, 'Le mot de passe doit contenir au moins 6 caractères.');
+        showError(passwordHelp, "Le mot de passe doit contenir au moins 6 caractères.");
         ok = false;
       } else hideError(passwordHelp);
 
       if (!ok) return;
 
-      // Example — ici vous pouvez envoyer les données via fetch to your API
-      const data = {
-        email: emailVal,
-        password: pwdVal,
-        remember: document.getElementById('remember').checked
-      };
+      const users = JSON.parse(localStorage.getItem("users")) || [];
+      const foundUser = users.find(u => u.email === emailVal && u.password === pwdVal);
 
-      // Simulate successful submit (replace by real fetch)
-      console.log('Données à envoyer :', data);
-      alert('Formulaire valide — remplacer par envoi réel au serveur.');
-      form.reset();
+      if (foundUser) {
+        localStorage.setItem("currentUser", JSON.stringify(foundUser));
+        alert("Connexion réussie !");
+        window.location.href = "station.html";
+      } else {
+        showError(passwordHelp, "Email ou mot de passe incorrect.");
+      }
     });
   </script>
 </body>
