@@ -13,80 +13,71 @@
         <h1 class="text-2xl font-semibold">Bienvenue</h1>
         <p class="text-sm text-slate-500">Connectez-vous à votre compte</p>
       </header>
-
+ 
       <form id="loginForm" novalidate class="space-y-4">
         <div>
           <label for="email" class="block text-sm font-medium text-slate-700">Adresse e-mail</label>
           <input id="email" name="email" type="email" required
             class="mt-1 block w-full rounded-lg border border-slate-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-sky-300" />
         </div>
-
+ 
         <div>
-          <label for="password" class="block text-sm font-medium text-slate-700">Mot de passe</label>
+          <label for="password" class="block text-sm font-medium text-slate-700">Mot de passe (au moins 6 caractères)</label>
           <input id="password" name="password" type="password" required minlength="6"
             class="mt-1 block w-full rounded-lg border border-slate-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-sky-300" />
         </div>
-
+ 
         <div>
-          <label for="pairCode" class="block text-sm font-medium text-slate-700">Code d’appairage</label>
-          <input id="pairCode" name="pairCode" type="text" required minlength="6"
-            class="mt-1 block w-full rounded-lg border border-slate-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-sky-300" />
-        </div>
-
-        <div>
-          <button type="submit" class="w-full py-2 rounded-lg bg-sky-600 text-white font-medium hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-300">Se connecter</button>
+          <button type="submit" class="w-full py-2 rounded-lg bg-sky-600 text-white font-medium hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-300">
+            Se connecter
+          </button>
         </div>
       </form>
-
+ 
       <footer class="mt-6 text-center text-sm text-slate-600">
-        Pas encore de compte ? 
+        Pas encore de compte ?
         <a href="inscrire.html" class="text-sky-600 hover:underline">Inscrivez-vous</a>
       </footer>
     </section>
   </main>
-
+ 
   <script>
     const form = document.getElementById('loginForm');
     const email = document.getElementById('email');
     const pwd = document.getElementById('password');
-    const pairCode = document.getElementById('pairCode');
-
+ 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-
+ 
       const emailVal = email.value.trim();
       const pwdVal = pwd.value.trim();
-      const codeVal = pairCode.value.trim();
-
+ 
       try {
         const response = await fetch("/api/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: emailVal, password: pwdVal })
         });
-
+ 
         const data = await response.json();
-
+ 
         if (!response.ok || data.error) {
           alert("Email ou mot de passe incorrect.");
           return;
         }
-
-        if (data.devices && data.devices.includes(codeVal)) {
-          const currentUser = {
-            name: data.name || "Utilisateur inconnu",
-            email: data.email,
-            token: data.token,      
-            selectedDevice: codeVal, 
-            devices: data.devices       
-          };
-
-          localStorage.setItem("currentUser", JSON.stringify(currentUser));
-          alert("Connexion et appairage réussis !");
-          window.location.href = "station.html";
-        } else {
-          alert("Code d’appairage invalide ou non associé à cet utilisateur.");
-        }
+ 
+        const currentUser = {
+          name: data.name || "Utilisateur inconnu",
+          email: data.email,
+          token: data.token,
+          devices: data.devices,
+          selectedDevice: data.devices[0]
+        };
+ 
+        localStorage.setItem("currentUser", JSON.stringify(currentUser));
+        alert("Connexion réussie !");
+        window.location.href = "station.html";
+ 
       } catch (err) {
         console.error("Erreur API:", err);
         alert("Impossible de se connecter au serveur.");

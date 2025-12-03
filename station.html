@@ -11,15 +11,18 @@
     <h1 style="color:white;">🌡️ Station météo</h1>
     <div style="display:flex; flex-direction:column; align-items:flex-end;">
       <p id="userEmail" style="margin:0; font-size:0.9rem; color:white;"></p>
-      
+     
       <label for="deviceSelect" style="font-size:0.8rem; color:white; margin-top:0.5rem;">Appareil :</label>
-      <select id="deviceSelect" style="margin-top:0.2rem; padding:0.2rem;">
-      </select>
-
+      <select id="deviceSelect" style="margin-top:0.2rem; padding:0.2rem;"></select>
+ 
+      <input id="newDeviceCode" type="text" placeholder="Nouveau code d’appairage"
+             style="margin-top:0.5rem; padding:0.2rem;" />
+      <button onclick="addDevice()" style="margin-top:0.5rem;">Ajouter un appareil</button>
+ 
       <button onclick="logout()" style="margin-top:0.5rem;">Déconnexion</button>
     </div>
   </header>
-
+ 
   <section class="cards">
     <div class="card">
       <h2 id="temperature">-- °C</h2>
@@ -30,9 +33,9 @@
       <p>Humidité</p>
     </div>
   </section>
-
+ 
   <p id="lastUpdate" style="text-align:center; font-size:0.9rem; color:gray;"></p>
-
+ 
   <section id="chartsSection" style="display:none;">
     <div class="chart-container">
       <canvas id="chartTemp"></canvas>
@@ -41,7 +44,56 @@
       <canvas id="chartHum"></canvas>
     </div>
   </section>
-
+ 
   <script src="script.js"></script>
+  <script>
+    async function addDevice() {
+      const newCode = document.getElementById("newDeviceCode").value.trim();
+      if (!newCode) {
+        alert("Veuillez entrer un code d’appairage.");
+        return;
+      }
+ 
+      const currentUserRaw = localStorage.getItem("currentUser");
+      if (!currentUserRaw) {
+        alert("Utilisateur non connecté.");
+        return;
+      }
+ 
+      const currentUser = JSON.parse(currentUserRaw);
+ 
+      try {
+        const response = await fetch("/api/add_device", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": currentUser.token
+          },
+          body: JSON.stringify({ device_code: newCode })
+        });
+ 
+        const data = await response.json();
+ 
+        if (!response.ok || data.error) {
+          alert("Erreur lors de l’ajout : " + (data.error || "inconnue"));
+          return;
+        }
+ 
+        currentUser.devices = data.devices;
+        localStorage.setItem("currentUser", JSON.stringify(currentUser));
+ 
+        const opt = document.createElement("option");
+        opt.value = newCode;
+        opt.textContent = `Appareil ${newCode}`;
+        document.getElementById("deviceSelect").appendChild(opt);
+ 
+        alert("Appareil ajouté !");
+        document.getElementById("newDeviceCode").value = "";
+      } catch (err) {
+        console.error("Erreur API:", err);
+        alert("Impossible de contacter le serveur.");
+      }
+    }
+  </script>
 </body>
 </html>
