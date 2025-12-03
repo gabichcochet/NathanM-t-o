@@ -29,6 +29,12 @@ if (currentUserRaw) {
     // Changement de sélection
     deviceSelectElem.addEventListener("change", (e) => {
       selectedDevice = e.target.value;
+      // Persister la sélection pour retrouver l'appareil au rechargement
+      try {
+        const cu = JSON.parse(localStorage.getItem("currentUser") || "null");
+        if (cu) { cu.selectedDevice = selectedDevice; localStorage.setItem("currentUser", JSON.stringify(cu)); }
+      } catch (err) { /* ignore */ }
+
       resetCharts();
       fetchCSVAndUpdate(); // relance immédiate pour fluidité
     });
@@ -54,14 +60,13 @@ const bufferedTempData = [];
 const bufferedHumLabels = [];
 const bufferedHumData = [];
  
-let lastLineCount = 0;
+// On n'utilise plus de compteur incrémental ; on reconstruit les séries à chaque appel
  
 function resetCharts() {
   bufferedTempLabels.length = 0;
   bufferedTempData.length = 0;
   bufferedHumLabels.length = 0;
   bufferedHumData.length = 0;
-  lastLineCount = 0;
   if (tempChart) tempChart.destroy();
   if (humChart) humChart.destroy();
   tempChart = null;
@@ -125,50 +130,85 @@ async function fetchCSVAndUpdate() {
     const response = await fetch("sensor_data.csv", { cache: "no-store" });
     const csvText = await response.text();
     const lines = csvText.trim().split("\n");
- 
-    const tempLabels = tempChart ? tempChart.data.labels : bufferedTempLabels;
-    const tempData = tempChart ? tempChart.data.datasets[0].data : bufferedTempData;
- 
-    const humLabels = humChart ? humChart.data.labels : bufferedHumLabels;
-    const humData = humChart ? humChart.data.datasets[0].data : bufferedHumData;
- 
-    for (let i = lastLineCount + 1; i < lines.length; i++) {
-      const parts = lines[i].split(",");
-      if (parts.length < 4) continue;
- 
+
+    // Reconstruire complètement les séries à partir du fichier CSV pour l'appareil sélectionné
+    const tempLabelsAll = [];
+    const tempDataAll = [];
+    const humLabelsAll = [];
+    const humDataAll = [];
+
+    // Si la première ligne ressemble à un en-tête, commencer après
+    const startIndex = (lines[0] && (lines[0].toLowerCase().includes('timestamp') || lines[0].toLowerCase().includes('time'))) ? 1 : 0;
+    for (let i = startIndex; i < lines.length; i++) {
+      const parts = lines[i].split(",").map(s => s.trim());
+      if (parts.length < 2) continue;
+
       const timestamp = parts[0];
-      const value = parseFloat(parts[1]);
-      const type = parts[2];
-      const deviceCode = parts[3]; // code d’appairage
- 
-      // Filtrer par appareil sélectionné
-      if (deviceCode !== selectedDevice) continue;
- 
-      if (type === "temperature" && !isNaN(value)) {
-        tempLabels.push(timestamp);
-        tempData.push(value);
-        if (tempLabels.length > 20) { tempLabels.shift(); tempData.shift(); }
-      }
- 
-      if (type === "humidity" && !isNaN(value)) {
-        humLabels.push(timestamp);
-        humData.push(value);
-        if (humLabels.length > 20) { humLabels.shift(); humData.shift(); }
+      // le code d'appairage est la dernière colonne
+      const deviceCode = (parts[3] || parts[parts.length - 1] || "").trim();
+
+      if (!selectedDevice || deviceCode !== selectedDevice) continue;
+
+      const raw1 = parts[1] || "";
+      const raw2 = parts[2] || "";
+      const v1 = parseFloat(raw1);
+      const v2 = parseFloat(raw2);
+      const t2 = String(raw2).toLowerCase();
+
+      // Cas: ligne avec type explicite en colonne 3 ("temperature" / "humidity")
+      if (t2 === 'temperature' || t2 === 'humidity') {
+        if (!isNaN(v1)) {
+          if (t2 === 'temperature') { tempLabelsAll.push(timestamp); tempDataAll.push(v1); }
+          else { humLabelsAll.push(timestamp); humDataAll.push(v1); }
+        }
+      } else {
+        // Cas: colonne 2 = temperature (nombre) et colonne 3 vide
+        if (!isNaN(v1)) {
+          tempLabelsAll.push(timestamp);
+          tempDataAll.push(v1);
+        }
+        // Cas: colonne 3 contient humidity (nombre)
+        if (!isNaN(v2)) {
+          humLabelsAll.push(timestamp);
+          humDataAll.push(v2);
+        }
       }
     }
- 
-    lastLineCount = lines.length - 1;
- 
+
+    // Garder les 40 dernières entrées
+    const keep = 40;
+    const tempLabels = tempLabelsAll.slice(-keep);
+    const tempData = tempDataAll.slice(-keep);
+    const humLabels = humLabelsAll.slice(-keep);
+    const humData = humDataAll.slice(-keep);
+
+    // Mettre à jour les buffers ou les charts
+    if (tempChart) {
+      tempChart.data.labels = tempLabels.slice();
+      tempChart.data.datasets[0].data = tempData.slice();
+    } else {
+      bufferedTempLabels.length = 0; bufferedTempLabels.push(...tempLabels);
+      bufferedTempData.length = 0; bufferedTempData.push(...tempData);
+    }
+
+    if (humChart) {
+      humChart.data.labels = humLabels.slice();
+      humChart.data.datasets[0].data = humData.slice();
+    } else {
+      bufferedHumLabels.length = 0; bufferedHumLabels.push(...humLabels);
+      bufferedHumData.length = 0; bufferedHumData.push(...humData);
+    }
+
     if (tempData.length > 0) tempElem.textContent = `${tempData[tempData.length - 1]} °C`;
     if (humData.length > 0) humElem.textContent = `${humData[humData.length - 1]} %`;
- 
+
     if ((!tempChart || !humChart) && (bufferedTempData.length > 0 || bufferedHumData.length > 0)) {
       createCharts();
     }
- 
+
     if (tempChart) tempChart.update();
     if (humChart) humChart.update();
- 
+
   } catch (error) {
     console.error("Erreur CSV:", error);
   }
