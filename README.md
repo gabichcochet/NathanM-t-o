@@ -50,6 +50,4 @@ Les graphiques ne s'affichent pas sur Edge.
 
 # Partie IOT
 
-lien vers le partie IOT
-
-[iot](https://github.com/Zephied/IoT_Meteo)
+[lien vers la partie IOT](https://github.com/Zephied/IoT_Meteo)
